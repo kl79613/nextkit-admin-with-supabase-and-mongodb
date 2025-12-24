@@ -5,7 +5,7 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get('accessToken')?.value;
   const pathname = request.nextUrl.pathname;
 
-  const publicRoutes = ['/auth/login', '/auth/register', '/api', '/_next', '/favicon.ico'];
+  const publicRoutes = ['/auth/login', '/auth/register', '/api', '/_next', '/favicon.ico','/home'];
 
   if (publicRoutes.some((path) => pathname.startsWith(path))) {
     return NextResponse.next();
