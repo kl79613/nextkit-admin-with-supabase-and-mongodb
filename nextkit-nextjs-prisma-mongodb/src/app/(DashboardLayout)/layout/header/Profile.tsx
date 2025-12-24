@@ -8,10 +8,11 @@ import Link from "next/link";
 import Image from "next/image";
 import SimpleBar from "simplebar-react";
 import { useRouter } from "next/navigation";
+import { deleteCookie } from "@/lib/utils/cookie";
 
 const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
-  const [userInfo, setUserInfo] = useState<any>(null); 
+  const [userInfo, setUserInfo] = useState<any>(null);
 
   useEffect(() => {
     const stored = localStorage.getItem("userInfo");
@@ -23,15 +24,38 @@ const Profile = () => {
   async function handleLogout() {
     setIsLoading(true);
     try {
-      const response = await fetch("/api/user/logout", {
-        method: "POST",
-      });
-      const result = await response.json();
-      console.log(result);
+      // 调用后端登出 API（如果有）
+      try {
+        const response = await fetch("/api/user/logout", {
+          method: "POST",
+        });
+        const result = await response.json();
+        console.log(result);
+      } catch (error) {
+        console.log(
+          error,
+          "Logout API call failed, but continuing with local cleanup"
+        );
+      }
+
+      // 清除本地存储
       localStorage.removeItem("userInfo");
-      window.location.href = "/";
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+
+      // 清除 Cookie（用于 middleware 路由保护）
+      deleteCookie("accessToken");
+
+      // 跳转到登录页
+      window.location.href = "/auth/login";
     } catch (error) {
       console.log(error, "Logout failed!");
+      // 即使出错也清除本地数据
+      localStorage.clear();
+      deleteCookie("accessToken");
+      window.location.href = "/auth/login";
+    } finally {
+      setIsLoading(false);
     }
   }
 
@@ -53,7 +77,7 @@ const Profile = () => {
               />
             ) : (
               <span className="size-[35px] rounded-full bg-lightprimary flex items-center justify-center text-primary border border-primary text-lg font-medium">
-                {userInfo?.fullname?.[0]?.toUpperCase()}
+                {userInfo?.name?.[0]?.toUpperCase()}
               </span>
             )}
           </div>
@@ -91,7 +115,9 @@ const Profile = () => {
             className="w-full rounded-md py-0 flex items-center gap-2 disabled:hover:bg-none"
             onClick={handleLogout}
           >
-            {isLoading ? <Spinner aria-label="Info spinner example" size="sm" /> : null}
+            {isLoading ? (
+              <Spinner aria-label="Info spinner example" size="sm" />
+            ) : null}
             Logout
           </Button>
         </div>

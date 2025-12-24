@@ -1,71 +1,257 @@
 "use client";
 
-import React, { useContext } from "react";
-import { Button, Sidebar, Tooltip } from "flowbite-react";
-import SidebarContent from "./Sidebaritems";
-import NavItems from "./NavItems";
-import SimpleBar from "simplebar-react";
-import { Icon } from "@iconify/react";
-import Image from "next/image";
-import FullLogo from "../shared/logo/FullLogo";
-import rocket from "/public/images/backgrounds/rocket.png"
-import Link from "next/link";
-const SidebarLayout = () => {
+import {
+  Sparkles,
+  TrendingUp,
+  Bookmark,
+  Dna,
+  Settings,
+  LogOut,
+  User,
+  Bell,
+  UserPlus,
+} from "lucide-react";
+import { Popconfirm, message } from "antd";
+// import { authService } from "@/services/auth";
+// import { useNavigate, useLocation } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+// import { notificationService } from "@/services/notification";
+// import { useStore } from "@/store";
+// import { authStorage } from "@/utils/storage/authStorage";
+import { getUserInfo, UserInfo } from "@/lib/services/auth";
+
+interface SidebarProps {
+  activeMenu?: string;
+  onMenuChange?: (menu: string) => void;
+  isMobile?: boolean;
+}
+
+const Sidebar = ({ isMobile }: SidebarProps) => {
+  // const { UserStore } = useStore();
+  const [messageApi, contextHolder] = message.useMessage();
+  const [unreadCount, setUnreadCount] = useState<number>(0);
+  const [avatarError, setAvatarError] = useState(false);
+  const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  // const navigate = useNavigate();
+  // const location = useLocation();
+  const getActiveMenuFromPath = (pathname: string): string => {
+    const path = pathname.replace(/^\//, "").toLowerCase();
+    const pathToMenuMap: Record<string, string> = {
+      titleai: "titleAi",
+      "title-ai": "titleAi",
+      trendwall: "trendWall",
+      "trend-wall": "trendWall",
+      mycollection: "myCollection",
+      "my-collection": "myCollection",
+      collection: "myCollection",
+      mydna: "myDna",
+      "my-dna": "myDna",
+      dna: "myDna",
+      settings: "settings",
+      notifications: "notifications",
+      invite: "invite",
+    };
+    if (pathToMenuMap[path]) return pathToMenuMap[path];
+    for (const [key, value] of Object.entries(pathToMenuMap)) {
+      if (path.startsWith(key) || path.includes(key)) return value;
+    }
+    return "titleAi";
+  };
+
+  const activeMenu = getActiveMenuFromPath(location.pathname);
+
+  const onMenuChange = (menu: string) => {
+    const menuToPathMap: Record<string, string> = {
+      titleAi: "/titleAi",
+      trendWall: "/trendWall",
+      myCollection: "/myCollection",
+      myDna: "/myDna",
+      settings: "/settings",
+      notifications: "/notifications",
+      invite: "/invite",
+    };
+    // navigate(menuToPathMap[menu] || `/${menu}`);
+  };
+
+  // const fetchUnreadCount = async () => {
+  //   try {
+  //     const resp = await notificationService.getUnreadCount();
+  //     setUnreadCount(resp.unread_total || 0);
+  //   } catch (e) {
+  //     console.error(e);
+  //   }
+  // };
+
+  const fetchUserInfo = async () => {
+    try {
+      const userInfo = await getUserInfo();
+      setUserInfo({
+        ...userInfo,
+      } as UserInfo);
+    } catch (e) {
+      console.error(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchUserInfo();
+  }, []);
+
+  // useEffect(() => {
+  //   fetchUnreadCount();
+  // }, [location.pathname]);
+
+  // useEffect(() => setAvatarError(false), [userInfo?.avatar]);
+
+  const menuItems = [
+    { id: "titleAi", label: "Title AI", icon: Sparkles },
+    { id: "trendWall", label: "Trend Wall", icon: TrendingUp },
+    { id: "myCollection", label: "My Collection", icon: Bookmark },
+    { id: "myDna", label: "My DNA", icon: Dna },
+  ];
+
+  // const handleLogout = async () => {
+  //   try {
+  //     await authService.logout();
+  //     messageApi.success("Logged out successfully");
+  //     setTimeout(() => navigate("/auth/login", { replace: true }), 1000);
+  //   } catch (e) {
+  //     messageApi.error("Logout failed");
+  //   }
+  // };
+
+  const handleSettings = () => onMenuChange("settings");
+
   return (
     <>
-      <div className="xl:block hidden">
-        <div className="flex">
-          <Sidebar
-            className="fixed menu-sidebar bg-white dark:bg-dark z-[3]"
-            aria-label="Sidebar with multi-level dropdown example"
-          >
-            <div className={`px-6 flex items-center brand-logo overflow-hidden`}>
-              <FullLogo />
+      {contextHolder}
+      <div
+        className={`${
+          isMobile ? "h-full w-full" : "h-screen w-64 border-r"
+        } flex flex-col border-cyan-500/20 bg-slate-950 text-white`}
+      >
+        <div className="border-b border-cyan-500/20 p-6">
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30">
+              <Sparkles className="h-6 w-6 text-white" />
             </div>
+            <h1 className="bg-gradient-to-r from-cyan-400 to-blue-400 bg-clip-text font-bold text-slate-100 text-transparent">
+              Title Lab
+            </h1>
+          </div>
+        </div>
 
-            <SimpleBar className="h-[calc(100vh_-_270px)]">
-              <Sidebar.Items className={`px-6`}>
-                <Sidebar.ItemGroup className="sidebar-nav">
-                  {SidebarContent.map((item, index) => (
-                    <React.Fragment key={index}>
-                     <h5 className="text-link font-bold text-xs dark:text-darklink caption">
-                        <span className="hide-menu leading-21">{item.heading?.toUpperCase()}</span>
-                        <Icon
-                        icon="tabler:dots"
-                        className="text-ld block mx-auto leading-6 dark:text-opacity-60 hide-icon"
-                        height={18}
-                      />
-                      </h5>
+        <nav className="flex-1 overflow-y-auto p-4">
+          <div className="space-y-1">
+            {menuItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = activeMenu === item.id;
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => onMenuChange(item.id)}
+                  className={`flex w-full items-center gap-3 rounded-lg px-4 py-3 transition-all ${
+                    isActive
+                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30"
+                      : "border border-transparent text-slate-300 hover:border-cyan-500/20 hover:bg-slate-800/50 hover:text-cyan-300"
+                  }`}
+                >
+                  <Icon className="h-5 w-5" />
+                  <span>{item.label}</span>
+                </button>
+              );
+            })}
+          </div>
+        </nav>
 
-                      {item.children?.map((child, index) => (
-                        <React.Fragment key={child.id && index}>
-                            <NavItems item={child} />
-                        </React.Fragment>
-                      ))}
-                    </React.Fragment>
-                  ))}
-                </Sidebar.ItemGroup>
-              </Sidebar.Items>
-            </SimpleBar>
-              {/* Offer Banner */}
-            <div className="mt-9 px-6 pb-6">
-            <div className="flex w-full bg-lightprimary p-6 rounded-md">
-                <div className="lg:w-8/12 w-full">
-                 <h5 className="text-base text-link dark:text-darklink">
-                  Liked what we offer?
-                 </h5>
-                 <Button size={"xs"} color={"primary"} as={Link} href="/" className=" mt-2 text-[13px] whitespace-nowrap" >Download Free</Button>
-                </div>
-                <div className="lg:w-1/2 w-full -mt-4 ml-4 scale-[1] shrink-0">
-                <Image src={rocket} alt="rocket" />
-                </div>
+        <div className="space-y-3 border-t border-cyan-500/20 p-4">
+          <div className="flex items-center gap-3 px-2 py-2">
+            {userInfo?.avatar && !avatarError ? (
+              <img
+                src={userInfo.avatar}
+                alt="User Avatar"
+                className="h-10 w-10 rounded-full object-cover shadow-lg shadow-cyan-500/30"
+                onError={() => setAvatarError(true)}
+              />
+            ) : (
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 shadow-lg shadow-cyan-500/30">
+                <User className="h-5 w-5 text-white" />
               </div>
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm text-slate-100">
+                {userInfo?.nickname || userInfo?.username || "User"}
+              </p>
+              <p className="truncate text-xs text-cyan-400">
+                {userInfo?.level_name || "Member"}
+              </p>
             </div>
-          </Sidebar>
+          </div>
+
+          <div className="space-y-1">
+            <button
+              onClick={() => onMenuChange("notifications")}
+              className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
+                activeMenu === "notifications"
+                  ? "border-transparent bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30"
+                  : "border-transparent text-slate-300 hover:border-cyan-500/20 hover:bg-slate-800/50 hover:text-cyan-300"
+              }`}
+            >
+              <div className="relative">
+                <Bell className="h-5 w-5" />
+                {unreadCount > 0 && (
+                  <span className="absolute -right-1 -top-1 h-2 w-2 animate-pulse rounded-full bg-red-500"></span>
+                )}
+              </div>
+              <span>Notifications</span>
+              {unreadCount > 0 && (
+                <span className="ml-auto rounded-full bg-red-500 px-2 py-0.5 text-xs text-white">
+                  {unreadCount > 99 ? "99+" : unreadCount}
+                </span>
+              )}
+            </button>
+
+            <button
+              onClick={() => onMenuChange("invite")}
+              className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
+                activeMenu === "invite"
+                  ? "border-transparent bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30"
+                  : "border-transparent text-slate-300 hover:border-cyan-500/20 hover:bg-slate-800/50 hover:text-cyan-300"
+              }`}
+            >
+              <UserPlus className="h-5 w-5" />
+              <span>Invite</span>
+            </button>
+
+            <button
+              onClick={handleSettings}
+              className={`flex w-full items-center gap-3 rounded-lg border px-4 py-3 transition-colors ${
+                activeMenu === "settings"
+                  ? "border-transparent bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-500/30"
+                  : "border-transparent text-slate-300 hover:border-cyan-500/20 hover:bg-slate-800/50 hover:text-cyan-300"
+              }`}
+            >
+              <Settings className="h-5 w-5" />
+              <span>Settings</span>
+            </button>
+            <Popconfirm
+              title="Are you sure you want to logout?"
+              description="This will end your current session."
+              onConfirm={() => {}}
+              okText="Yes, logout"
+              cancelText="Cancel"
+              placement="topRight"
+            >
+              <button className="flex w-full items-center gap-3 rounded-lg border border-transparent px-4 py-3 text-slate-300 transition-colors hover:border-red-500/30 hover:bg-red-600/80 hover:text-white">
+                <LogOut className="h-5 w-5" />
+                <span>Logout</span>
+              </button>
+            </Popconfirm>
+          </div>
         </div>
       </div>
     </>
   );
 };
 
-export default SidebarLayout;
+export default Sidebar;

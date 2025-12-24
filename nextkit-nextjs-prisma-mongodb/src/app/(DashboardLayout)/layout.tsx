@@ -13,31 +13,27 @@ export default function Layout({
     <div className="flex w-full min-h-screen">
       <div className="page-wrapper flex w-full">
         {/* Header/sidebar */}
-         <Sidebar />
+        <Sidebar />
         <div className="body-wrapper w-full bg-white dark:bg-dark">
           {/* Top Header  */}
-            <Header/>
+          {/* <Header /> */}
           {/* Body Content  */}
-          <div
-            className={`container mx-auto px-6  py-[30px]`}
-          >
-            {children}
-          </div>
+          <div className={`container mx-auto px-6  py-[30px]`}>{children}</div>
         </div>
       </div>
       <ToastContainer
-position="top-right"
-autoClose={5000}
-hideProgressBar={false}
-newestOnTop={false}
-closeOnClick={false}
-rtl={false}
-pauseOnFocusLoss
-draggable
-pauseOnHover
-theme="light"
-transition={Bounce}
-/>
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick={false}
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+        transition={Bounce}
+      />
     </div>
   );
 }
