@@ -7,7 +7,7 @@ import type { NextRequest } from "next/server";
  * 功能：
  * - 保护页面路由，只有登录后才能访问（除了 /home 和 /auth/login）
  * - 从 Cookie 中读取 accessToken 进行验证
- * - 未登录用户重定向到登录页
+ * - 未登录用户重定向到首页 /home
  *
  * 说明：
  * - Token 存储在 Cookie（用于路由保护）和 localStorage（用于 API 调用）
@@ -41,14 +41,14 @@ export function proxy(request: NextRequest) {
   const token = request.cookies.get("accessToken")?.value;
   console.log(token, "==================== Token 检查 ====================");
 
-  // ==================== 如果没有 token，重定向到登录页 ====================
+  // ==================== 如果没有 token，重定向到首页 ====================
   if (!token) {
-    const loginUrl = new URL("/auth/login", request.url);
+    const homeUrl = new URL("/home", request.url);
     // 保存原始路径，登录后可以跳转回来
-    if (pathname !== "/auth/login") {
-      loginUrl.searchParams.set("redirect", pathname);
+    if (pathname !== "/home" && pathname !== "/auth/login") {
+      homeUrl.searchParams.set("redirect", pathname);
     }
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(homeUrl);
   }
 
   // ==================== 允许通过 ====================

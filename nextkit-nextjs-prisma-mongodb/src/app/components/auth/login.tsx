@@ -34,7 +34,7 @@ export const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [isError, setIsError] = useState(false);
 
-  async function handleLogin() {
+  async function handleLogin2() {
     setIsLoading(true);
     try {
       const response: LoginResponse = await login(
@@ -78,7 +78,7 @@ export const Login = () => {
     }
   }
 
-  async function handleLogin2() {
+  async function handleLogin() {
     setIsLoading(true);
     try {
       const response = await fetch("/api/user/login", {
@@ -88,6 +88,7 @@ export const Login = () => {
       });
 
       const result = await response.json();
+      console.log(result, "result")
       localStorage.setItem("userInfo", JSON.stringify(result));
 
       if (response.ok) {
@@ -113,6 +114,8 @@ export const Login = () => {
     } catch (error) {
       console.log(error, "Login failed! ");
       setIsError(true);
+      setIsLoading(false);
+
     }
   }
 

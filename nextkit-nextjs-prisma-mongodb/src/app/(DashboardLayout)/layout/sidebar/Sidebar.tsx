@@ -111,17 +111,22 @@ const Sidebar = ({ isMobile }: SidebarProps) => {
     { id: "myDna", label: "My DNA", icon: Dna },
   ];
 
-  // const handleLogout = async () => {
-  //   try {
-  //     await authService.logout();
-  //     messageApi.success("Logged out successfully");
-  //     setTimeout(() => navigate("/auth/login", { replace: true }), 1000);
-  //   } catch (e) {
-  //     messageApi.error("Logout failed");
-  //   }
-  // };
+  const handleLogout = async () => {
+    try {
+      await fetch("/api/user/logout", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+      });
+      messageApi.success("Logged out successfully");
+      setTimeout(() => window.location.href = "/home", 1000);
+    } catch (e) {
+      messageApi.error("Logout failed");
+    }
+  };
 
   const handleSettings = () => onMenuChange("settings");
+
+
 
   return (
     <>
@@ -238,7 +243,7 @@ const Sidebar = ({ isMobile }: SidebarProps) => {
             <Popconfirm
               title="Are you sure you want to logout?"
               description="This will end your current session."
-              onConfirm={() => {}}
+              onConfirm={handleLogout}
               okText="Yes, logout"
               cancelText="Cancel"
               placement="topRight"
