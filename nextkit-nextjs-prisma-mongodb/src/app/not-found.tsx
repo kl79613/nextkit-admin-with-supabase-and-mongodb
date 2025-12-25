@@ -1,6 +1,5 @@
 import Image from "next/image";
 import React from "react";
-import ErrorImg from "/public/images/backgrounds/errorimg.svg";
 import { Button } from "flowbite-react";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -13,7 +12,7 @@ const Error = () => {
     <>
       <div className="h-screen flex items-center justify-center bg-white dark:bg-dark">
         <div className="text-center">
-          <Image src={ErrorImg} alt="error" className="mb-4" />
+          <Image src="/images/backgrounds/errorimg.svg" alt="error" width={500} height={500} className="mb-4" />
           <h1 className="text-ld text-4xl mb-6">Opps!!!</h1>
           <h6 className="text-xl text-ld">
             This page you are looking for could not be found.
