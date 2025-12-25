@@ -194,9 +194,9 @@ export const Login = () => {
               </div>
               <Button
                 onClick={handleLogin}
-                type="submit"
+                htmlType="submit"
+                type="primary"
                 disabled={isLoading}
-                color={"primary"}
                 className="w-full mt-6 flex items-center gap-2 disabled:hover:bg-none"
               >
                 {isLoading ? (

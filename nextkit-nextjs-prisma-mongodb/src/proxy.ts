@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 
 /**
- * Middleware 鉴权
+ * Proxy 鉴权
  *
  * 功能：
  * - 保护页面路由，只有登录后才能访问（除了 /home 和 /auth/login）
@@ -12,8 +12,10 @@ import type { NextRequest } from "next/server";
  * 说明：
  * - Token 存储在 Cookie（用于路由保护）和 localStorage（用于 API 调用）
  * - 只检查 token 是否存在，不验证签名（后端 API 会完整验证）
+ * 
+ * 注意：Next.js 16 将 middleware 重命名为 proxy
  */
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
 
   // ==================== 公共路由配置 ====================
@@ -66,3 +68,4 @@ export const config = {
     "/((?!api|_next/static|_next/image|favicon.ico).*)",
   ],
 };
+

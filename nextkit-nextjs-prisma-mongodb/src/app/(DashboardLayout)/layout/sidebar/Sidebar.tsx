@@ -15,6 +15,7 @@ import { Popconfirm, message } from "antd";
 // import { authService } from "@/services/auth";
 // import { useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
+import { usePathname } from "next/navigation";
 // import { notificationService } from "@/services/notification";
 // import { useStore } from "@/store";
 // import { authStorage } from "@/utils/storage/authStorage";
@@ -32,8 +33,8 @@ const Sidebar = ({ isMobile }: SidebarProps) => {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [avatarError, setAvatarError] = useState(false);
   const [userInfo, setUserInfo] = useState<UserInfo | null>(null);
+  const pathname = usePathname();
   // const navigate = useNavigate();
-  // const location = useLocation();
   const getActiveMenuFromPath = (pathname: string): string => {
     const path = pathname.replace(/^\//, "").toLowerCase();
     const pathToMenuMap: Record<string, string> = {
@@ -58,7 +59,7 @@ const Sidebar = ({ isMobile }: SidebarProps) => {
     return "titleAi";
   };
 
-  const activeMenu = getActiveMenuFromPath(location.pathname);
+  const activeMenu = getActiveMenuFromPath(pathname);
 
   const onMenuChange = (menu: string) => {
     const menuToPathMap: Record<string, string> = {
