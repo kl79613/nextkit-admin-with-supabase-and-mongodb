@@ -19,7 +19,16 @@ import { usePathname } from "next/navigation";
 // import { notificationService } from "@/services/notification";
 // import { useStore } from "@/store";
 // import { authStorage } from "@/utils/storage/authStorage";
-import { getUserInfo, UserInfo } from "@/lib/services/auth";
+import { clientFetch } from "@/lib/clientFetch";
+
+interface UserInfo {
+  id?: number;
+  username?: string;
+  nickname?: string;
+  avatar?: string;
+  email?: string;
+  [key: string]: any;
+}
 
 interface SidebarProps {
   activeMenu?: string;
@@ -85,10 +94,12 @@ const Sidebar = ({ isMobile }: SidebarProps) => {
 
   const fetchUserInfo = async () => {
     try {
-      const userInfo = await getUserInfo();
-      setUserInfo({
-        ...userInfo,
-      } as UserInfo);
+      // 从 localStorage 读取用户信息
+      const stored = localStorage.getItem("userInfo");
+      if (stored) {
+        const userInfo = JSON.parse(stored);
+        setUserInfo(userInfo);
+      }
     } catch (e) {
       console.error(e);
     }
@@ -113,20 +124,17 @@ const Sidebar = ({ isMobile }: SidebarProps) => {
 
   const handleLogout = async () => {
     try {
-      await fetch("/api/user/logout", {
+      await clientFetch("/api/user/logout", {
         method: "POST",
-        headers: { "content-type": "application/json" },
       });
       messageApi.success("Logged out successfully");
-      setTimeout(() => window.location.href = "/home", 1000);
+      setTimeout(() => (window.location.href = "/home"), 1000);
     } catch (e) {
       messageApi.error("Logout failed");
     }
   };
 
   const handleSettings = () => onMenuChange("settings");
-
-
 
   return (
     <>

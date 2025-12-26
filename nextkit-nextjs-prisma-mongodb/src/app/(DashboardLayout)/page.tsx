@@ -13,7 +13,7 @@ const page = () => {
     <>
       <div className="grid grid-cols-12 gap-6">
         <div className="col-span-12">
-          <TopCards />
+          {/* <TopCards /> */}
         </div>
         {/* <div className="lg:col-span-4 col-span-12">
           <div className="grid grid-cols-12 gap-6">

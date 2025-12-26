@@ -9,6 +9,7 @@ import Image from "next/image";
 import SimpleBar from "simplebar-react";
 import { useRouter } from "next/navigation";
 import { deleteCookie } from "@/lib/utils/cookie";
+import { clientFetch } from "@/lib/clientFetch";
 
 const Profile = () => {
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +27,7 @@ const Profile = () => {
     try {
       // 调用后端登出 API（如果有）
       try {
-        const response = await fetch("/api/user/logout", {
+        const response = await clientFetch("/api/user/logout", {
           method: "POST",
         });
         const result = await response.json();
@@ -60,13 +61,13 @@ const Profile = () => {
   }
 
   return (
-    <div className="relative group/menu ps-15 shrink-0">
+    <div className="group/menu ps-15 relative shrink-0">
       <Dropdown
         label=""
-        className="w-screen sm:w-[200px] pb-6 pt-4 rounded-sm"
+        className="w-screen rounded-sm pb-6 pt-4 sm:w-[200px]"
         dismissOnClick={false}
         renderTrigger={() => (
-          <div className="hover:text-primary hover:bg-lightprimary rounded-full flex justify-center items-center cursor-pointer group-hover/menu:bg-lightprimary group-hover/menu:text-primary">
+          <div className="hover:text-primary hover:bg-lightprimary group-hover/menu:bg-lightprimary group-hover/menu:text-primary flex cursor-pointer items-center justify-center rounded-full">
             {userInfo?.image ? (
               <Image
                 src="/images/profile/user-1.jpg"
@@ -76,7 +77,7 @@ const Profile = () => {
                 className="rounded-full"
               />
             ) : (
-              <span className="size-[35px] rounded-full bg-lightprimary flex items-center justify-center text-primary border border-primary text-lg font-medium">
+              <span className="bg-lightprimary text-primary border-primary flex size-[35px] items-center justify-center rounded-full border text-lg font-medium">
                 {userInfo?.name?.[0]?.toUpperCase()}
               </span>
             )}
@@ -88,17 +89,17 @@ const Profile = () => {
             <Dropdown.Item
               as={Link}
               href={items.url}
-              className="px-4 py-2 flex justify-between items-center bg-hover group/link w-full"
+              className="bg-hover group/link flex w-full items-center justify-between px-4 py-2"
               key={index}
             >
               <div className="w-full">
-                <div className="ps-0 flex items-center gap-3 w-full">
+                <div className="flex w-full items-center gap-3 ps-0">
                   <Icon
                     icon={items.icon}
-                    className="text-lg text-bodytext dark:text-darklink group-hover/link:text-primary"
+                    className="text-bodytext dark:text-darklink group-hover/link:text-primary text-lg"
                   />
                   <div className="w-3/4 ">
-                    <h5 className="mb-0 text-sm text-bodytext dark:text-darklink group-hover/link:text-primary">
+                    <h5 className="text-bodytext dark:text-darklink group-hover/link:text-primary mb-0 text-sm">
                       {items.title}
                     </h5>
                   </div>
@@ -108,11 +109,11 @@ const Profile = () => {
           ))}
         </SimpleBar>
 
-        <div className="pt-2 px-4">
+        <div className="px-4 pt-2">
           <Button
             color={"outlineprimary"}
             size={"md"}
-            className="w-full rounded-md py-0 flex items-center gap-2 disabled:hover:bg-none"
+            className="flex w-full items-center gap-2 rounded-md py-0 disabled:hover:bg-none"
             onClick={handleLogout}
           >
             {isLoading ? (

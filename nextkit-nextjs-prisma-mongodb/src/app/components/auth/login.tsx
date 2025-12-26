@@ -1,250 +1,203 @@
 "use client";
-import { Button } from "antd";
-
-import FullLogo from "@/app/(DashboardLayout)/layout/shared/logo/FullLogo";
-import CardBox from "../shared/CardBox";
-import { Checkbox, Label, Spinner, TextInput } from "flowbite-react";
 import Link from "next/link";
-import { useReducer, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Icon } from "@iconify/react/dist/iconify.js";
-import { Bounce, toast } from "react-toastify";
-import { login, type LoginResponse } from "@/lib/services/auth";
+import { Sparkles, Mail, Lock } from "lucide-react";
+import { message } from "antd";
+import { useState, useEffect } from "react";
 import { setCookie } from "@/lib/utils/cookie";
-const initalUserInfo = {
-  email: "",
-  password: "",
-};
 
-export const Login = () => {
+export  function Login() {
   const router = useRouter();
-  function reducer(userInfo: any, action: { type: string; payload: string }) {
-    switch (action.type) {
-      case "SET_EMAIL":
-        return { ...userInfo, email: action.payload };
-        break;
-      case "SET_PASSWORD":
-        return { ...userInfo, password: action.payload };
-        break;
-      default:
-        return userInfo;
+  const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState("");
+  const [remember, setRemember] = useState(false);
+  const [messageApi, contextHolder] = message.useMessage();
+
+  // Load remembered email on mount
+  useEffect(() => {
+    const savedEmail = localStorage.getItem("remember_email");
+    if (savedEmail) {
+      setEmail(savedEmail);
+      setRemember(true);
     }
-  }
-  const [userInfo, dispatch] = useReducer(reducer, initalUserInfo);
-  const [isLoading, setIsLoading] = useState(false);
-  const [isError, setIsError] = useState(false);
+  }, []);
 
-  async function handleLogin2() {
-    setIsLoading(true);
+  // 处理登录
+  const handleLogin = async (values: any) => {
+    setLoading(true);
     try {
-      const response: LoginResponse = await login(
-        userInfo.email,
-        userInfo.password
-      );
-      console.log(response, "response");
-      if (response.code === 0) {
-        const token = response.data.token;
-
-        // 存储到 localStorage（用于 API 调用）
-        localStorage.setItem("userInfo", JSON.stringify(response.data.user));
-        // token 是字符串，直接存储，不需要 JSON.stringify
-        localStorage.setItem("token", token);
-        if (response.data.refresh_token) {
-          localStorage.setItem("refresh_token", response.data.refresh_token);
-        }
-
-        // 设置 Cookie（用于 middleware 路由保护）
-        // 注意：如果 token 是对象，需要转换为字符串
-        const tokenValue =
-          typeof token === "string" ? token : JSON.stringify(token);
-        setCookie("accessToken", tokenValue, 7); // 7 天过期
-
-        // 检查是否有重定向参数
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirect = urlParams.get("redirect");
-
-        // 跳转到目标页面或首页
-        window.location.href = redirect || "/";
+      // Handle Remember Me logic
+      if (values.remember) {
+        localStorage.setItem("remember_email", values.email);
       } else {
-        toast.error(response.msg || "Login failed");
+        localStorage.removeItem("remember_email");
       }
-    } catch (error: any) {
-      console.error("Login failed:", error);
-      const errorMessage =
-        error?.response?.data?.msg || error?.message || "Network error";
-      toast.error(errorMessage);
-    } finally {
-      setIsLoading(false);
-    }
-  }
 
-  async function handleLogin() {
-    setIsLoading(true);
-    try {
-      const response = await fetch("/api/user/login", {
+      const res = await fetch("/api/user/login", {
         method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(userInfo),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: values.email,
+          password: values.password,
+        }),
       });
 
-      const result = await response.json();
-      console.log(result, "result")
-      localStorage.setItem("userInfo", JSON.stringify(result));
+      const data = await res.json();
 
-      if (response.ok) {
-        window.location.href = "/";
-        console.log(response);
-        setIsLoading(false);
-      } else {
-        toast.error(result.error || "Login failed", {
-          position: "top-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: false,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-          transition: Bounce,
-          className: "!font-semibold !font-inherit !text-[#EF4444]",
-        });
-        setIsLoading(false);
-        setIsError(true);
+      if (!res.ok) {
+        throw new Error(data.error || data.msg || "Login failed");
       }
-    } catch (error) {
-      console.log(error, "Login failed! ");
-      setIsError(true);
-      setIsLoading(false);
 
+      // 登录成功，保存用户信息和 token（与 signup 逻辑一致）
+      if (data.user) {
+        localStorage.setItem("userInfo", JSON.stringify(data.user));
+      }
+
+      // 保存 token 到 localStorage 和设置 Cookie（用于 middleware 路由保护）
+      if (data.token) {
+        localStorage.setItem("token", data.token);
+        setCookie("accessToken", data.token, 7); // 7 天过期
+      }
+      if (data.refresh_token) {
+        localStorage.setItem("refresh_token", data.refresh_token);
+      }
+
+      messageApi.success("Login successful! Welcome back!");
+      router.push("/invite");
+    } catch (error: any) {
+      console.error("Login failed:", error);
+      messageApi.error(
+        error.message || "Login failed. Please check your credentials."
+      );
+    } finally {
+      setLoading(false);
     }
-  }
+  };
 
   return (
-    <>
-      <div className="h-screen w-full flex justify-center items-center bg-lightprimary">
-        <div className="md:min-w-[400px] min-w-max">
-          <CardBox>
-            <div className="flex justify-center mb-8">
-              <FullLogo />
-            </div>
-            <form
-              action=""
-              onSubmit={(e) => {
-                e.preventDefault();
-                handleLogin();
-              }}
-            >
-              <div className="flex flex-col gap-4">
-                <div>
-                  <div className="mb-2 block">
-                    <Label
-                      htmlFor="email1"
-                      value="Email"
-                      className="font-medium"
-                    />
-                  </div>
-                  <TextInput
-                    id="email1"
-                    value={userInfo.email}
-                    onChange={(e) =>
-                      dispatch({ type: "SET_EMAIL", payload: e.target.value })
-                    }
-                    type="email"
-                    className={`${isError ? "active-error" : ""} form-control`}
-                    placeholder="Enter your email"
-                    required
-                  />
-                </div>
-                <div className="mt-0">
-                  <div className="mb-2 block">
-                    <Label
-                      htmlFor="password1"
-                      value="Password"
-                      className="font-medium"
-                    />
-                  </div>
-                  <TextInput
-                    value={userInfo.password}
-                    onChange={(e) =>
-                      dispatch({
-                        type: "SET_PASSWORD",
-                        payload: e.target.value,
-                      })
-                    }
-                    id="password1"
-                    type="password"
-                    className={`${isError ? "active-error" : ""} form-control`}
-                    placeholder="Enter your password"
-                    required
-                  />
-                </div>
-                <div className="flex flex-wrap gap-6 items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Checkbox
-                      id="remember"
-                      className="checkbox"
-                      checked
-                      readOnly
-                    />
-                    <Label
-                      className="text-link font-normal text-sm"
-                      htmlFor="remember"
-                    >
-                      Remember this device
-                    </Label>
-                  </div>
-                </div>
-              </div>
-              <Button
-                onClick={handleLogin}
-                htmlType="submit"
-                type="primary"
-                disabled={isLoading}
-                className="w-full mt-6 flex items-center gap-2 disabled:hover:bg-none"
+    <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-gray-900 via-blue-950 to-black px-4 sm:px-6 lg:px-8">
+      {contextHolder}
+      <div className="w-full max-w-md">
+        {/* Logo */}
+        <Link href="/" className="mb-8 flex items-center justify-center gap-2">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/50">
+            <Sparkles className="h-6 w-6 text-white" />
+          </div>
+          <span className="text-2xl text-white">Title Lab</span>
+        </Link>
+
+        {/* Card */}
+        <div className="rounded-2xl border border-gray-800 bg-gray-900 p-8 shadow-xl">
+          <div className="mb-8 text-center">
+            <h1 className="mb-2 text-3xl text-white">Welcome Back</h1>
+            <p className="text-gray-400">
+              Sign in to continue creating viral content
+            </p>
+          </div>
+
+          {/* Email Form */}
+          <form
+            className="space-y-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              const formData = new FormData(e.currentTarget);
+              const values = {
+                email: formData.get("email") as string,
+                password: formData.get("password") as string,
+                remember: remember,
+              };
+              handleLogin(values);
+            }}
+          >
+            <div>
+              <label
+                htmlFor="email"
+                className="mb-2 block text-sm text-gray-300"
               >
-                {isLoading ? (
-                  <Spinner aria-label="Info spinner example" size="sm" />
-                ) : null}
-                Sign In
-              </Button>
-              <div className="flex items center gap-2 justify-center mt-6 flex-wrap">
-                <p className="text-base font-medium text-muted dark:text-darklink">
-                  New to NextKit?
-                </p>
-                <Link
-                  href="/auth/register"
-                  className="text-sm font-medium text-primary hover:text-primaryemphasis"
-                >
-                  Create an account
-                </Link>
-              </div>
-            </form>
-            <div className=" w-full gap-2 py-1.5 px-4 mx-auto justify-center rounded-md bg-lightsuccess text-success text-[13px] text-center font-medium mt-6 mb-2">
-              <div className="flex items-center justify-center gap-2 mb-2">
-                <Icon
-                  icon="cuida:alert-outline"
-                  width={16}
-                  height={16}
-                  classnametext-success="true"
+                Email
+              </label>
+              <div className="relative">
+                <Mail className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
+                <input
+                  type="email"
+                  id="email"
+                  name="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="Email"
+                  className="w-full rounded-xl border border-gray-700 bg-gray-800 py-3 pl-10 pr-4 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
                 />
-                SignIn as Admin
-              </div>
-              <div className="flex flex-col gap-2 items-start">
-                <div className="flex items-start gap-2">
-                  <span className="font-semibold">Demo Email:</span>
-                  <p className="text-sm">admin@gmail.com</p>
-                </div>
-              </div>
-              <div className="flex flex-col gap-2 items-start">
-                <div className="flex items-start gap-2">
-                  <span className="font-semibold">Demo password:</span>
-                  <p className="text-sm">12345</p>
-                </div>
               </div>
             </div>
-          </CardBox>
+
+            <div>
+              <label
+                htmlFor="password"
+                className="mb-2 block text-sm text-gray-300"
+              >
+                Password
+              </label>
+              <div className="relative">
+                <Lock className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-gray-500" />
+                <input
+                  type="password"
+                  id="password"
+                  name="password"
+                  placeholder="Password"
+                  className="w-full rounded-xl border border-gray-700 bg-gray-800 py-3 pl-10 pr-4 text-white focus:border-transparent focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  required
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  name="remember"
+                  checked={remember}
+                  onChange={(e) => setRemember(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-700 bg-gray-800 text-blue-500 focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-400">Remember me</span>
+              </label>
+              <Link
+                href="/auth/forgot-password"
+                className="text-sm text-cyan-400 hover:text-cyan-300"
+              >
+                Forgot password?
+              </Link>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-cyan-500 py-3 text-white transition-all hover:shadow-lg hover:shadow-blue-500/50 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {loading ? "Signing in..." : "Sign In"}
+            </button>
+          </form>
+
+          {/* Sign Up Link */}
+          <p className="mt-6 text-center text-gray-400">
+            Don't have an account?{" "}
+            <Link
+              href="/auth/signup"
+              className="cursor-pointer text-cyan-400 hover:text-cyan-300"
+            >
+              Sign up
+            </Link>
+          </p>
+        </div>
+
+        {/* Back to Home */}
+        <div className="mt-6 text-center">
+          <Link href="/home" className="text-gray-400 hover:text-white">
+            ← Back to home
+          </Link>
         </div>
       </div>
-    </>
+    </div>
   );
-};
+}

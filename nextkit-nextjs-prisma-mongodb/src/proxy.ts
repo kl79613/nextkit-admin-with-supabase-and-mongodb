@@ -21,6 +21,7 @@ export function proxy(request: NextRequest) {
   // ==================== 公共路由配置 ====================
   // 这些路由不需要鉴权，直接放行
   const publicRoutes = [
+    "/auth/signup", // 注册页
     "/auth/login", // 登录页
     "/auth/register", // 注册页（如果需要）
     "/home", // 首页（公开访问）

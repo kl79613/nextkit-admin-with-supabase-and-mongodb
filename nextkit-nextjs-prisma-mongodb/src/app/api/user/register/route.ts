@@ -1,55 +1,68 @@
-import { PrismaClient } from "@prisma/client";
 import { NextRequest, NextResponse } from "next/server";
-import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 
 export async function POST(req: NextRequest) {
-  const prisma = new PrismaClient();
   try {
     const body = await req.json();
-    const { fullname, email, password } = body;
+    const apiUrl = process.env.EXTERNAL_API_BASE_URL;
 
-    if (!fullname || !email || !password) {
-      return NextResponse.json({ error: 'Please provide all valid fields' }, { status: 400 });
+    const res = await fetch(`${apiUrl}/user/register`, {
+      method: "POST",
+      body: JSON.stringify(body),
+      headers: { "Content-Type": "application/json" },
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      return NextResponse.json(
+        { error: data.error || data.msg || "Registration failed" },
+        { status: res.status }
+      );
     }
-    else {
-      const user = await prisma.user.findUnique({
-        where: {
-          email: email
-        }
+
+    // 根据 LoginResponse 接口，返回格式应该是:
+    // { token, refresh_token, expire_at, user }
+    // 参考 login route 的数据结构，可能是 data.data 或 data
+    const loginResponse = {
+      token: data.data?.token || data.token,
+      refresh_token: data.data?.refresh_token || data.refresh_token,
+      expire_at: data.data?.expire_at || data.expire_at,
+      user: data.data?.user || data.user,
+    };
+
+    const response = NextResponse.json(loginResponse);
+
+    // 设置 cookies（参考 login route 的设置方式）
+    if (loginResponse.token) {
+      response.cookies.set("accessToken", loginResponse.token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
       });
-      if (user) {
-        return NextResponse.json({ error: "User already registered!" }, { status: 400 })
-      } else {
-        // Password Hashing
-        const salt = await bcrypt.genSalt(10);
-        const hashedPassword = await bcrypt.hash(password, salt);
-        // Jwt Token
-        const secret = process.env.ACCESS_TOKEN_SECRET as string;
-        const accessToken = jwt.sign({ fullname, email }, secret, { expiresIn: "1d" });
-
-        await prisma.user.create({
-          data: {
-            fullname,
-            email,
-            password: hashedPassword
-          },
-        });
-
-        const response = NextResponse.json({ fullname, email, message: "User registered successfully!" } , {status:201});
-        response.cookies.set({
-          name: 'accessToken',
-          value: accessToken,
-          httpOnly: true,
-          secure: process.env.NODE_ENV === "production",
-          maxAge: 60 * 60 * 24,        
-        });
-        return response;
-      }
-
     }
+
+    if (loginResponse.refresh_token) {
+      response.cookies.set("refreshToken", loginResponse.refresh_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
+    }
+
+    if (loginResponse.expire_at) {
+      response.cookies.set("expireAt", String(loginResponse.expire_at), {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "lax",
+      });
+    }
+
+    return response;
   } catch (error) {
-    console.error('Error creating user:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error("Error registering user:", error);
+    return NextResponse.json(
+      { error: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
