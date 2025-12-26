@@ -3,7 +3,7 @@ const nextConfig = {
   reactStrictMode: false,
   images: { unoptimized: true },
   // 启用 standalone 输出模式，用于 Docker 部署
-  output: 'standalone',
+  output: "standalone",
 };
 
 export default nextConfig;

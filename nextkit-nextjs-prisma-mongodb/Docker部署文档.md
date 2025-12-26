@@ -106,20 +106,20 @@ docker compose logs -f app
 
 ### 必需环境变量
 
-| 变量名 | 说明 | 示例 |
-|--------|------|------|
-| `DATABASE_URL` | MongoDB 连接字符串 | `mongodb://admin:password123@mongodb:27017/nextkit?authSource=admin` |
-| `EXTERNAL_API_BASE_URL` | 外部 API 基础 URL | `http://api.example.com` |
-| `NODE_ENV` | 运行环境 | `production` |
+| 变量名                  | 说明               | 示例                                                                 |
+| ----------------------- | ------------------ | -------------------------------------------------------------------- |
+| `DATABASE_URL`          | MongoDB 连接字符串 | `mongodb://admin:password123@mongodb:27017/nextkit?authSource=admin` |
+| `EXTERNAL_API_BASE_URL` | 外部 API 基础 URL  | `http://api.example.com`                                             |
+| `NODE_ENV`              | 运行环境           | `production`                                                         |
 
 ### 可选环境变量
 
-| 变量名 | 说明 | 默认值 |
-|--------|------|--------|
-| `MONGO_ROOT_USERNAME` | MongoDB root 用户名 | `admin` |
-| `MONGO_ROOT_PASSWORD` | MongoDB root 密码 | `password123` |
-| `MONGO_DATABASE` | MongoDB 数据库名 | `nextkit` |
-| `PORT` | 应用端口 | `3000` |
+| 变量名                | 说明                | 默认值        |
+| --------------------- | ------------------- | ------------- |
+| `MONGO_ROOT_USERNAME` | MongoDB root 用户名 | `admin`       |
+| `MONGO_ROOT_PASSWORD` | MongoDB root 密码   | `password123` |
+| `MONGO_DATABASE`      | MongoDB 数据库名    | `nextkit`     |
+| `PORT`                | 应用端口            | `3000`        |
 
 ### DATABASE_URL 格式说明
 
@@ -128,6 +128,7 @@ mongodb://[username:password@]host[:port][/database][?options]
 ```
 
 **示例**：
+
 - 本地 MongoDB: `mongodb://admin:password123@mongodb:27017/nextkit?authSource=admin`
 - MongoDB Atlas: `mongodb+srv://username:password@cluster.mongodb.net/nextkit?retryWrites=true&w=majority`
 
@@ -306,10 +307,10 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '1'
+          cpus: "1"
           memory: 1G
         reservations:
-          cpus: '0.5'
+          cpus: "0.5"
           memory: 512M
 ```
 
@@ -354,6 +355,7 @@ find $BACKUP_DIR -type d -mtime +7 -exec rm -rf {} \;
 **问题**: 应用启动后无法连接到 MongoDB
 
 **解决方案**:
+
 - 检查 `DATABASE_URL` 是否正确
 - 确认 MongoDB 容器已启动: `docker compose ps`
 - 检查网络连接: `docker compose exec app ping mongodb`
@@ -364,6 +366,7 @@ find $BACKUP_DIR -type d -mtime +7 -exec rm -rf {} \;
 **问题**: 构建时 Prisma Client 生成失败
 
 **解决方案**:
+
 ```bash
 # 确保 DATABASE_URL 在构建时可用
 docker build --build-arg DATABASE_URL=$DATABASE_URL -t nextkit-app .
@@ -374,10 +377,11 @@ docker build --build-arg DATABASE_URL=$DATABASE_URL -t nextkit-app .
 **问题**: 端口 3000 或 27017 已被占用
 
 **解决方案**:
+
 - 修改 `docker-compose.yml` 中的端口映射:
   ```yaml
   ports:
-    - "3001:3000"  # 使用 3001 端口
+    - "3001:3000" # 使用 3001 端口
   ```
 
 ### 4. 容器内存不足
@@ -385,6 +389,7 @@ docker build --build-arg DATABASE_URL=$DATABASE_URL -t nextkit-app .
 **问题**: 容器因内存不足被杀死
 
 **解决方案**:
+
 - 增加 Docker 内存限制
 - 优化应用代码
 - 使用资源限制配置（见生产环境部署）
@@ -394,6 +399,7 @@ docker build --build-arg DATABASE_URL=$DATABASE_URL -t nextkit-app .
 **问题**: 图片、CSS 等静态资源 404
 
 **解决方案**:
+
 - 检查 `public` 目录是否正确复制到镜像
 - 确认 Next.js 配置中的 `output: 'standalone'` 已启用
 
@@ -402,6 +408,7 @@ docker build --build-arg DATABASE_URL=$DATABASE_URL -t nextkit-app .
 **问题**: 修改 `.env` 后环境变量未更新
 
 **解决方案**:
+
 ```bash
 # 重新构建并启动
 docker compose down
@@ -439,6 +446,7 @@ docker compose up -d --build
 ```
 
 脚本会自动：
+
 - 检查环境变量文件
 - 停止现有容器
 - 构建并启动服务
@@ -536,6 +544,7 @@ show collections
 ## 📝 更新日志
 
 ### 版本 1.0.0
+
 - 初始 Docker 部署配置
 - 支持 Docker Compose 一键部署
 - 包含 MongoDB 和 MongoDB Express
@@ -557,4 +566,3 @@ show collections
 ## 📧 支持
 
 如有问题，请提交 Issue 或联系项目维护者。
-
