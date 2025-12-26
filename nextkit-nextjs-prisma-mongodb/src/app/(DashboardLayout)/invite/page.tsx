@@ -3,7 +3,11 @@ import { useState, useEffect } from "react";
 import { Copy, Check, User, UserPlus, Sparkles } from "lucide-react";
 import { message } from "antd";
 import { clientFetch } from "@/lib/clientFetch";
-
+interface ResponseData<T> {
+  code: number;
+  data: T;
+  message: string;
+}
 // 类型定义（与 API route 保持一致）
 interface User {
   id: number;
@@ -101,15 +105,20 @@ const InviteSection = () => {
       });
 
       // clientFetch 已经返回解析后的 JSON 数据
-      const inviteData = res as unknown as InviteResponse;
-
+      const inviteData = res as ResponseData<InviteResponse>;
+      console.log(
+        inviteData,
+        "inviteData=====================fetchInviteCodes"
+      );
       // 更新限制和统计信息
-      setMaxInvites(inviteData.limit);
-      setTotal(inviteData.total);
-      setRemaining(inviteData.remaining);
+      setMaxInvites(inviteData.data.limit);
+      setTotal(inviteData.data.total);
+      setRemaining(inviteData.data.remaining);
 
       // 转换并设置邀请码列表
-      const transformedCodes = inviteData.list.map(transformInviteToInviteCode);
+      const transformedCodes = inviteData.data.list.map(
+        transformInviteToInviteCode
+      );
       setInviteCodes(transformedCodes);
     } catch (error: any) {
       console.error("Failed to fetch invite codes:", error);
@@ -142,20 +151,20 @@ const InviteSection = () => {
       });
 
       // clientFetch 已经返回解析后的 JSON 数据
-      const inviteData = res as unknown as InviteResponse;
+      const inviteData = res as ResponseData<InviteResponse>;
       console.log(
         inviteData,
         "inviteData=====================generateInviteCode"
       );
       // 返回的是完整的列表响应（包含 limit, total, remaining, list）
-      if (inviteData.list && Array.isArray(inviteData.list)) {
+      if (inviteData.data.list && Array.isArray(inviteData.data.list)) {
         // 更新限制和统计信息
-        setMaxInvites(inviteData.limit);
-        setTotal(inviteData.total);
-        setRemaining(inviteData.remaining);
+        setMaxInvites(inviteData.data.limit);
+        setTotal(inviteData.data.total);
+        setRemaining(inviteData.data.remaining);
 
         // 转换并设置邀请码列表
-        const transformedCodes = inviteData.list.map(
+        const transformedCodes = inviteData.data.list.map(
           transformInviteToInviteCode
         );
         setInviteCodes(transformedCodes);

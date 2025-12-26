@@ -20,9 +20,15 @@ export async function clientFetch(
   // ⭐ 统一处理 401
   const data = await res.json();
   if (data.code === 401) {
-    // 跳转到登录页
-    window.location.href = "/";
-
+    // 防止多次跳转
+    if (typeof window !== "undefined") {
+      // 清除本地存储的认证信息
+      localStorage.removeItem("userInfo");
+      localStorage.removeItem("token");
+      localStorage.removeItem("refresh_token");
+      // 跳转到登录页
+      window.location.href = "/";
+    }
     throw new AuthExpiredError();
   }
 
